@@ -1,8 +1,11 @@
 import pika
 from pika.exchange_type import ExchangeType
 
+exchangeName = "pyropro"
+firePredictionRoutingKey = "PyroproFirePredictionQueue"
+
 def on_message_received(ch, method, properties, body):
-    print(f'Analytics - received new message: {body}')
+    print(f'Payments - received new message: {body}')
 
 connection_parameters = pika.ConnectionParameters('localhost')
 
@@ -10,16 +13,15 @@ connection = pika.BlockingConnection(connection_parameters)
 
 channel = connection.channel()
 
-channel.exchange_declare(exchange='routing', exchange_type=ExchangeType.direct)
+channel.exchange_declare(exchange=exchangeName, exchange_type=ExchangeType.direct, durable=True)
+#
+queue = channel.queue_declare(queue=firePredictionRoutingKey, durable=True)
 
-queue = channel.queue_declare(queue='', exclusive=True)
-
-channel.queue_bind(exchange='routing', queue=queue.method.queue, routing_key='analyticsonly')
-channel.queue_bind(exchange='routing', queue=queue.method.queue, routing_key='both')
-
-channel.basic_consume(queue=queue.method.queue, auto_ack=True,
+channel.queue_bind(exchange=exchangeName, queue=queue.method.queue, routing_key=firePredictionRoutingKey)
+# channel.queue_bind(exchange='pyropro', queue=queue.method.queue, routing_key='both')
+channel.basic_consume(queue=firePredictionRoutingKey, auto_ack=True,
     on_message_callback=on_message_received)
 
-print('Analytics Starting Consuming')
+print('Payments Starting Consuming')
 
 channel.start_consuming()
