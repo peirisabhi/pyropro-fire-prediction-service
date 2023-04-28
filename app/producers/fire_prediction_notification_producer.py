@@ -2,20 +2,24 @@ import pika
 from pika.exchange_type import ExchangeType
 
 exchangeName = "pyropro"
-routingKey = "PyroproFirePredictionQueue"
+routingKey = "PyroproNotificationQueue"
 
-connection_parameters = pika.ConnectionParameters('localhost')
 
-connection = pika.BlockingConnection(connection_parameters)
 
-channel = connection.channel()
 
-channel.exchange_declare(exchange=exchangeName, exchange_type=ExchangeType.direct)
+def produce_message_to_notification(data):
+    connection_parameters = pika.ConnectionParameters('localhost')
 
-message = 'This message needs to be routed1111'
+    connection = pika.BlockingConnection(connection_parameters)
 
-channel.basic_publish(exchange=exchangeName, routing_key=routingKey, body=message)
+    channel = connection.channel()
 
-print(f'sent message: {message}')
+    channel.exchange_declare(exchange=exchangeName, exchange_type=ExchangeType.direct, durable=True)
 
-connection.close()
+    message = 'This message needs to be routed1111'
+
+    channel.basic_publish(exchange=exchangeName, routing_key=routingKey, body=data)
+
+    print(f'sent message: {data}')
+
+    connection.close()

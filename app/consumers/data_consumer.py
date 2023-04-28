@@ -3,6 +3,7 @@ from pika.exchange_type import ExchangeType
 from app.prediction import fire_predictor
 import json
 from app.models.fire_prediction_model import  database
+import app.producers.fire_prediction_notification_producer as notificationProducer
 
 exchangeName = "pyropro"
 firePredictionRoutingKey = "PyroproFirePredictionQueue"
@@ -18,10 +19,13 @@ def on_message_received(ch, method, properties, body):
     predictData = [data['temperature'], data['humidity'], data['wind_speed'], data['rain']]
     predValue = fire_predictor.prediction(predictData);
 
+
     print(predValue[0])
     if predValue[0] == 'fire':
+        data['fire'] = 'fire'
+        data['data_from'] = 'pyropro-fire-prediction-service'
+        notificationProducer.produce_message_to_notification(json.dumps(data))
         db.insert(data)
-
 
 
 def start_consume():
