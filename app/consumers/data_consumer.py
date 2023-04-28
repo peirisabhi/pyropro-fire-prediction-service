@@ -1,6 +1,7 @@
 import pika
 from pika.exchange_type import ExchangeType
-import time
+from app.prediction import fire_predictor
+import json
 
 exchangeName = "pyropro"
 firePredictionRoutingKey = "PyroproFirePredictionQueue"
@@ -10,7 +11,12 @@ def on_message_received(ch, method, properties, body):
     print(f'Payments - received new message: {body}')
     # time.sleep(5)
     print("Wait is over.")
+    data = json.loads(body)
+    print(data)
+    predictData = [data['temperature'], data['humidity'], data['wind_speed'], data['rain']]
+    predValue = fire_predictor.prediction(predictData);
 
+    print(predValue)
 
 def start_consume():
     connection_parameters = pika.ConnectionParameters('localhost')

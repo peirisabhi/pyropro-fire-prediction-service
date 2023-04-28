@@ -69,3 +69,4 @@ if __name__ == "__main__":
     second_thread = threading.Thread(target=while_function)
     first_thread.start()
     second_thread.start()
+    second_thread.join()
