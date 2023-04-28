@@ -5,26 +5,30 @@ import time
 exchangeName = "pyropro"
 firePredictionRoutingKey = "PyroproFirePredictionQueue"
 
+
 def on_message_received(ch, method, properties, body):
     print(f'Payments - received new message: {body}')
-    time.sleep(5)
+    # time.sleep(5)
     print("Wait is over.")
 
-connection_parameters = pika.ConnectionParameters('localhost')
 
-connection = pika.BlockingConnection(connection_parameters)
+def start_consume():
+    connection_parameters = pika.ConnectionParameters('localhost')
 
-channel = connection.channel()
+    connection = pika.BlockingConnection(connection_parameters)
 
-channel.exchange_declare(exchange=exchangeName, exchange_type=ExchangeType.direct, durable=True)
+    channel = connection.channel()
 
-queue = channel.queue_declare(queue=firePredictionRoutingKey, durable=True)
+    channel.exchange_declare(exchange=exchangeName, exchange_type=ExchangeType.direct, durable=True)
 
-channel.queue_bind(exchange=exchangeName, queue=queue.method.queue, routing_key=firePredictionRoutingKey)
+    queue = channel.queue_declare(queue=firePredictionRoutingKey, durable=True)
 
-channel.basic_consume(queue=firePredictionRoutingKey, auto_ack=True,
-    on_message_callback=on_message_received)
+    channel.queue_bind(exchange=exchangeName, queue=queue.method.queue, routing_key=firePredictionRoutingKey)
 
-print('Payments Starting Consuming')
+    channel.basic_consume(queue=firePredictionRoutingKey, auto_ack=True,
+                          on_message_callback=on_message_received)
 
-channel.start_consuming()
+    print('Payments Starting Consuming')
+    channel.start_consuming()
+
+# start_consume()
